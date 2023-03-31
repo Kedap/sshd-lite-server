@@ -1,4 +1,4 @@
-module github.com/Kedap/sshd-lite/server
+module github.com/Kedap/sshd-lite-server
 
 go 1.19
 
