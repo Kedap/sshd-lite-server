@@ -34,7 +34,7 @@ func NewServer(c *Config) (*Server, error) {
 }
 
 // Start listening on port
-func (s *Server) Start() error {
+func (s *Server) Start(quit chan bool) error {
 	h := s.cli.Host
 	p := s.cli.Port
 	var l net.Listener
@@ -61,12 +61,18 @@ func (s *Server) Start() error {
 	// Accept all connections
 	log.Printf("Listening on %s:%s...", h, p)
 	for {
-		tcpConn, err := l.Accept()
-		if err != nil {
-			log.Printf("Failed to accept incoming connection (%s)", err)
-			continue
+		select {
+		case <-quit:
+			l.Close()
+			return fmt.Errorf("Stop ssh server")
+		default:
+			tcpConn, err := l.Accept()
+			if err != nil {
+				log.Printf("Failed to accept incoming connection (%s)", err)
+				continue
+			}
+			go s.handleConn(tcpConn)
 		}
-		go s.handleConn(tcpConn)
 	}
 }
 
